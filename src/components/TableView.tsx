@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 
 import { ElementData } from '../data';
@@ -39,7 +39,7 @@ export const TableView: React.FC<TableViewProps> = ({
     const renderRef = useRef<() => void>();
     const transformFnRef = useRef<((layout: string, duration: number) => void) | null>(null);
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-    const controlsRef = useRef<TrackballControls | null>(null);
+    const controlsRef = useRef<OrbitControls | null>(null);
 
     const [currentLayout, setCurrentLayout] = useState('table');
     const [hasError, setHasError] = useState<string | null>(null);
@@ -96,7 +96,28 @@ export const TableView: React.FC<TableViewProps> = ({
 
     useEffect(() => {
         if (controlsRef.current) {
-            controlsRef.current.noRotate = !canRotate;
+            controlsRef.current.enableRotate = canRotate;
+            if (!canRotate) {
+                controlsRef.current.touches = {
+                    ONE: THREE.TOUCH.PAN,
+                    TWO: THREE.TOUCH.DOLLY_PAN
+                };
+                controlsRef.current.mouseButtons = {
+                    LEFT: THREE.MOUSE.PAN,
+                    MIDDLE: THREE.MOUSE.DOLLY,
+                    RIGHT: THREE.MOUSE.PAN
+                };
+            } else {
+                controlsRef.current.touches = {
+                    ONE: THREE.TOUCH.ROTATE,
+                    TWO: THREE.TOUCH.DOLLY_PAN
+                };
+                controlsRef.current.mouseButtons = {
+                    LEFT: THREE.MOUSE.ROTATE,
+                    MIDDLE: THREE.MOUSE.DOLLY,
+                    RIGHT: THREE.MOUSE.PAN
+                };
+            }
         }
     }, [canRotate]);
 
@@ -157,9 +178,24 @@ export const TableView: React.FC<TableViewProps> = ({
             
             // Interactions
             elementNode.addEventListener('pointerdown', (e) => {
-                e.stopPropagation(); // prevent controls from taking it immediately 
-                onSelectElement(el);
+                const pointerDownTime = performance.now();
+                const pointerDownPos = { x: e.clientX, y: e.clientY };
+                
+                const onPointerUp = (upEvent: PointerEvent) => {
+                    const dt = performance.now() - pointerDownTime;
+                    const dx = upEvent.clientX - pointerDownPos.x;
+                    const dy = upEvent.clientY - pointerDownPos.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    // If it was a quick tap without much movement, count as click
+                    if (dt < 400 && dist < 10) {
+                        onSelectElement(el);
+                    }
+                };
+                
+                window.addEventListener('pointerup', onPointerUp, { once: true });
             });
+
             elementNode.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -260,9 +296,11 @@ export const TableView: React.FC<TableViewProps> = ({
         renderer.domElement.style.top = '0';
         container.appendChild( renderer.domElement );
 
-        const controls = new TrackballControls( camera, renderer.domElement );
+        const controls = new OrbitControls( camera, renderer.domElement );
         controls.minDistance = 500;
         controls.maxDistance = 6000;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
         controlsRef.current = controls;
 
         const renderCall = () => {
@@ -475,8 +513,8 @@ export const TableView: React.FC<TableViewProps> = ({
                     ))}
                 </div>
 
-                <div aria-live="polite" className="text-[#a5f3fc] text-[10px] sm:text-xs font-mono tracking-widest bg-black/50 px-4 py-1.5 rounded-full border border-white/10 transition-all pointer-events-none shadow-sm">
-                    {canRotate ? '拖曳旋轉 • 右鍵平移 • 滾輪縮放' : '右鍵平移 • 滾輪縮放 (目前已鎖定旋轉)'}
+                <div aria-live="polite" className="text-[#a5f3fc] text-[10px] sm:text-xs font-mono tracking-widest bg-black/50 px-4 py-1.5 rounded-full border border-white/10 transition-all pointer-events-none shadow-sm text-center">
+                    {canRotate ? '單指/左鍵旋轉 • 雙指/右鍵平移 • 滾輪縮放' : '單指/左鍵平移 • 雙指縮放 (已鎖定旋轉)'}
                 </div>
             </div>
 

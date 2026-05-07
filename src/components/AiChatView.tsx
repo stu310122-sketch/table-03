@@ -14,7 +14,7 @@ interface Message {
 }
 
 export function AiChatView({ onBack }: AiChatViewProps) {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userRole, setUserRole] = useState<'none' | 'student' | 'teacher'>('none');
     const [passwordInput, setPasswordInput] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [messages, setMessages] = useState<Message[]>([
@@ -29,22 +29,25 @@ export function AiChatView({ onBack }: AiChatViewProps) {
     };
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (userRole !== 'none') {
             scrollToBottom();
         }
-    }, [messages, isAuthenticated]);
+    }, [messages, userRole]);
 
     const handlePasswordSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (passwordInput === 'IRC') {
-            setIsAuthenticated(true);
+            setUserRole('student');
+            setPasswordError('');
+        } else if (passwordInput === 'IRC T') {
+            setUserRole('teacher');
             setPasswordError('');
         } else {
             setPasswordError('密碼錯誤，請重新輸入');
         }
     };
 
-    if (!isAuthenticated) {
+    if (userRole === 'none') {
         return (
             <div className="flex flex-col h-[100dvh] w-full bg-[#02111d] text-white p-4 overflow-hidden absolute inset-0 items-center justify-center">
                 <header className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 border-b border-[#00f0ff]/30 glass-panel z-20 shrink-0">
@@ -59,6 +62,9 @@ export function AiChatView({ onBack }: AiChatViewProps) {
                         <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
                             <Droplet className="w-6 h-6 text-[#00f0ff]" />
                             <span>AI 化學助手</span>
+                            <span className={`text-xs ml-2 px-2 py-1 rounded-full border ${userRole === 'teacher' ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10' : 'border-[#00f0ff] text-[#00f0ff] bg-[#00f0ff]/10'}`}>
+                                {userRole === 'teacher' ? '教師進階版 (Pro)' : '學生標準版 (Flash)'}
+                            </span>
                         </h1>
                     </div>
                 </header>
@@ -84,6 +90,7 @@ export function AiChatView({ onBack }: AiChatViewProps) {
                     <div className="text-center space-y-2">
                         <h2 className="text-3xl font-bold glowing-text tracking-wider">訪問認證</h2>
                         <p className="text-gray-400 text-sm tracking-widest uppercase">Terminal Access Required</p>
+                        <p className="text-gray-500 text-xs mt-2">提示：依據密碼層級啟用不同模型</p>
                     </div>
                     
                     <form onSubmit={handlePasswordSubmit} className="w-full flex flex-col space-y-6 relative z-10">
@@ -145,7 +152,7 @@ export function AiChatView({ onBack }: AiChatViewProps) {
             const contents = messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.text}`).join('\n') + `\nUser: ${userMessage}`;
             
             const response = await ai.models.generateContent({
-                model: "gemini-3.1-pro-preview",
+                model: userRole === 'teacher' ? "gemini-2.5-pro" : "gemini-2.5-flash",
                 contents: contents,
                 config: {
                     systemInstruction: "你是一個專業但親切的化學助手，名為「恆河水 AI」。你的任務是幫助使用者回答化學、元素週期表相關的問題。請用繁體中文回答，並且解釋得淺顯易懂。",
