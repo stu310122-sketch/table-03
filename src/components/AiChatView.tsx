@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bot, User, Lock, Send, KeyRound, Sparkles, ChevronLeft } from 'lucide-react';
+import { Droplet, User, Lock, Send, KeyRound, Sparkles, ChevronLeft } from 'lucide-react';
 
 interface AiChatViewProps {
     onBack: () => void;
@@ -57,7 +57,7 @@ export function AiChatView({ onBack }: AiChatViewProps) {
                             <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                         </button>
                         <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                            <Bot className="w-6 h-6 text-[#00f0ff]" />
+                            <Droplet className="w-6 h-6 text-[#00f0ff]" />
                             <span>AI 化學助手</span>
                         </h1>
                     </div>
@@ -178,7 +178,7 @@ export function AiChatView({ onBack }: AiChatViewProps) {
                     </button>
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-[#00f0ff]/10 rounded-lg border border-[#00f0ff]/30 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                            <Bot className="w-6 h-6 text-[#00f0ff]" />
+                            <Droplet className="w-6 h-6 text-[#00f0ff]" />
                         </div>
                         <div>
                             <h1 className="text-xl font-bold flex items-center gap-2">
@@ -211,7 +211,7 @@ export function AiChatView({ onBack }: AiChatViewProps) {
                                     </div>
                                 ) : (
                                     <div className="w-8 h-8 rounded-full bg-[#00f0ff]/20 border border-[#00f0ff]/50 flex items-center justify-center shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                                        <Bot className="w-4 h-4 text-[#00f0ff]" />
+                                        <Droplet className="w-4 h-4 text-[#00f0ff]" />
                                     </div>
                                 )}
                             </div>
@@ -239,7 +239,7 @@ export function AiChatView({ onBack }: AiChatViewProps) {
                         <div className="flex gap-3 max-w-[85%] md:max-w-[75%]">
                             <div className="flex-shrink-0 mt-auto mb-1">
                                 <div className="w-8 h-8 rounded-full bg-[#00f0ff]/20 border border-[#00f0ff]/50 flex items-center justify-center shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                                    <Bot className="w-4 h-4 text-[#00f0ff] animate-pulse" />
+                                    <Droplet className="w-4 h-4 text-[#00f0ff] animate-pulse" />
                                 </div>
                             </div>
                             <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0a2540] to-[#041f2e] border border-[#00f0ff]/30 text-[#e2e8f0] rounded-bl-sm flex items-center space-x-2 h-[52px]">
