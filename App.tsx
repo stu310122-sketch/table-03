@@ -1,4 +1,5 @@
-import React, { useState, useTransition } from 'react';
+import React, { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { getElements, ElementData } from './src/data';
 import { OrbitalModal } from './src/components/OrbitalModal';
 import { ElementModal } from './src/components/ElementModal';
@@ -12,80 +13,66 @@ import AtomicPackingView from './src/components/AtomicPackingView';
 import { NetworkBackground } from './src/components/NetworkBackground';
 import { SplashScreen } from './src/components/SplashScreen';
 import { AboutView } from './src/components/AboutView';
-import { AiChatView } from './src/components/AiChatView';
 
 export default function App() {
-    const [view, setView] = useState('home'); 
+    const navigate = useNavigate();
     const [tableMode, setTableMode] = useState('basic'); 
     const [selectedEl, setSelectedEl] = useState<ElementData | null>(null);
     const [selectedOrbital, setSelectedOrbital] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [phaseFilter, setPhaseFilter] = useState<string | number>('all'); 
-    const [isPending, startTransition] = useTransition();
 
     const elements = React.useMemo(() => getElements(), []);
 
-    const handleNavigate = (newView: string) => {
-        startTransition(() => {
-            setView(newView);
-        });
-    };
-
-    const renderView = () => {
-        const backToHome = () => handleNavigate('home');
-
-        switch(view) {
-            case 'home': return <HomeView onNavigate={handleNavigate} />;
-            case 'table': return (
-                <TableView 
-                    elements={elements}
-                    tableMode={tableMode}
-                    setTableMode={setTableMode}
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                    phaseFilter={phaseFilter}
-                    setPhaseFilter={setPhaseFilter}
-                    onSelectElement={setSelectedEl}
-                    onSelectOrbital={setSelectedOrbital}
-                    onBack={backToHome}
-                />
-            );
-            case 'orbitals_gallery': return (
-                <OrbitalsGalleryView 
-                    onSelectOrbital={setSelectedOrbital}
-                    onBack={backToHome}
-                />
-            );
-            case 'list': return (
-                <ElementListView 
-                    elements={elements}
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                    onSelectElement={setSelectedEl}
-                    onBack={backToHome}
-                />
-            );
-            case 'quiz': return <QuizView elements={elements} onBack={backToHome} />;
-            case 'stats': return <AtomicPackingView onBack={backToHome} />;
-            case 'gacha': return (
-                <GachaView 
-                    elements={elements}
-                    onDraw={setSelectedEl}
-                    onBack={backToHome}
-                />
-            );
-            case 'about': return <AboutView onBack={backToHome} />;
-            case 'ai_chat': return <AiChatView onBack={backToHome} />;
-            default: return null;
-        }
-    };
+    const backToHome = () => navigate('/');
 
     return (
         <div className="wood-border-container">
             <NetworkBackground />
             <SplashScreen />
-            <div className={`wood-border-inner transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                {renderView()}
+            <div className={`wood-border-inner transition-opacity duration-300 opacity-100`}>
+                <Routes>
+                    <Route path="/" element={<HomeView />} />
+                    <Route path="/table" element={
+                        <TableView 
+                            elements={elements}
+                            tableMode={tableMode}
+                            setTableMode={setTableMode}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            phaseFilter={phaseFilter}
+                            setPhaseFilter={setPhaseFilter}
+                            onSelectElement={setSelectedEl}
+                            onSelectOrbital={setSelectedOrbital}
+                            onBack={backToHome}
+                        />
+                    } />
+                    <Route path="/orbitals_gallery" element={
+                        <OrbitalsGalleryView 
+                            onSelectOrbital={setSelectedOrbital}
+                            onBack={backToHome}
+                        />
+                    } />
+                    <Route path="/list" element={
+                        <ElementListView 
+                            elements={elements}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            onSelectElement={setSelectedEl}
+                            onBack={backToHome}
+                        />
+                    } />
+                    <Route path="/quiz" element={<QuizView elements={elements} onBack={backToHome} />} />
+                    <Route path="/stats" element={<AtomicPackingView onBack={backToHome} />} />
+                    <Route path="/gacha" element={
+                        <GachaView 
+                            elements={elements}
+                            onDraw={setSelectedEl}
+                            onBack={backToHome}
+                        />
+                    } />
+                    <Route path="/about" element={<AboutView onBack={backToHome} />} />
+                </Routes>
                 {selectedEl && <ElementModal element={selectedEl} onClose={() => setSelectedEl(null)} tableMode={tableMode} />}
                 {selectedOrbital && <OrbitalModal type={selectedOrbital} onClose={() => setSelectedOrbital(null)} />}
             </div>
